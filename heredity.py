@@ -1,7 +1,7 @@
 import csv
 import itertools
 import sys
-import pandas as pd
+import numpy as np
 
 PROBS = {
 
@@ -203,9 +203,44 @@ def gene_matrix():
     z = child
     Values taken from PROBS dict.
     """
+    # Get probabilities for mutation and no mutation
+    P_M = PROBS['mutation']
+    P_NM = 1 - PROBS['mutation']
 
+    # Create 3 x 3 x 3 numpy array
+    gene_matrix = np.zeros((3, 3, 3))
 
-    
+    gene_matrix[0][0][0] = P_NM**2
+    gene_matrix[0][1][0] = P_NM * 0.5 * P_M + 0.5 * (P_NM**2)
+    gene_matrix[0][2][0] = P_NM * P_M
+    gene_matrix[0][0][1] = P_NM * 0.5 * P_M + 0.5 * (P_NM**2)
+    gene_matrix[0][1][1] = (0.5 * P_M)**2 + 0.5 * P_M * P_NM + (0.5 * P_NM)**2
+    gene_matrix[0][2][1] = 0.5 * P_NM * P_M
+    gene_matrix[0][0][2] = P_M * P_NM
+    gene_matrix[0][1][2] = 0.5 * P_M * P_NM
+    gene_matrix[0][2][2] = P_M**2
+
+    gene_matrix[1][0][0] = 2 * P_M * P_NM
+    gene_matrix[1][1][0] = 0.5 * P_NM**2 + P_M * P_NM + 0.5 * P_M**2
+    gene_matrix[1][2][0] = P_M**2 + P_NM**2
+    gene_matrix[1][0][1] = 0.5 * P_NM**2 + P_M * P_NM + 0.5 * P_M**2
+    gene_matrix[1][1][1] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
+    gene_matrix[1][2][1] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
+    gene_matrix[1][0][2] = P_NM**2 + P_M**2
+    gene_matrix[1][1][2] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
+    gene_matrix[1][2][2] = 2 * P_M * P_NM
+
+    gene_matrix[2][0][0] = P_M**2
+    gene_matrix[2][1][0] = 0.5 * P_M**2 + 0.5 * P_M * P_NM
+    gene_matrix[2][2][0] = P_M * P_NM
+    gene_matrix[2][0][1] = 0.5 * P_M**2 + 0.5 * P_M * P_NM
+    gene_matrix[2][1][1] = 0.25 * P_M**2 + 0.5 * P_M * P_NM + 0.25 * P_NM**2
+    gene_matrix[2][2][1] = 0.5 * P_M * P_NM + 0.5 * P_NM**2
+    gene_matrix[2][0][2] = P_M * P_NM
+    gene_matrix[2][1][2] = 0.5 * P_M * P_NM + 0.5 * P_NM**2
+    gene_matrix[2][2][2] = P_NM**2
+
+    return gene_matrix
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
