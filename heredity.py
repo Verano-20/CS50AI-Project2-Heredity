@@ -1,6 +1,7 @@
 import csv
 import itertools
 import sys
+import pandas as pd
 
 PROBS = {
 
@@ -139,7 +140,72 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    # Calculate the matrix of probabilities for gene inheritance
+    gene_matrix = gene_matrix()
+    
+    # create list to store all probabilities to be multiplied
+    joint_prob = []
+
+    # Loop through people and create dictionary of who has what genes and trait
+    ref = dict()
+    for person in people:
+        # Get number of genes
+        if person in one_gene:
+            genes = 1
+        elif person in two_genes:
+            genes = 2
+        else:
+            genes = 0
+        # Get trait
+        if person in have_trait:
+            trait = True
+        else:
+            trait = False
+        # Add info to ref
+        ref[person] = {'genes': genes, 'trait': trait}
+
+    # Begin looping through people
+    for person in people:
+       
+        # Check if the person has parents
+        if people[person]['mother'] == None and people[person]['father'] == None:
+            # If no parents, take values straight from dict
+            gene_prob = PROBS['gene'][ref[person]['genes']]    
+            trait_prob = PROBS['trait'][ref[person]['genes']][ref[person]['trait']]
+            joint_prob.append(gene_prob * trait_prob)
+        else:
+            # Calculate prob of getting number of genes from mother and father
+            for parent in ['mother', 'father']:
+                if ref[person[parent]]['genes'] == 2:
+                    gene_prob = 1 - PROBS['mutation']
+                elif ref[person[parent]]['genes'] == 1:
+                    gene_prob = 0.5 - PROBS['mutation']
+                elif ref[person[parent]]['genes'] == 0:
+                    gene_prob = PROBS['mutation']
+                
+                inherited_prob = 
+
+
+
+            # Calculate prob of getting number of genes from father
+
+
+
+        # Calculate total probability for this person
+        total_prob = gene_prob * trait_prob
+        joint_prob.append(total_prob)
+
+
+def gene_matrix():
+    """ 
+    Calculate a 3 x 3 x 3 matrix of probabilities for inherting any number of genes from parents with any number of genes.
+    x, y = parents
+    z = child
+    Values taken from PROBS dict.
+    """
+
+
+    
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,7 +215,13 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities:
+        if person in one_gene:
+            probabilities[person]['gene'][1] += p
+        if person in two_genes:
+            probabilities[person]['gene'][2] += p
+        if person in have_trait:
+            probabilities[person]['trait'][True] += p
 
 
 def normalize(probabilities):
@@ -157,8 +229,19 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
-
+    # Get sums as given
+    for person in probabilities:
+        gene_total = sum(probabilities[person]['gene'][n] for n in range(3))
+        trait_total = sum(probabilities[person]['trait'][t] for t in [True, False])
+        # Calculate alpha(gene) and beta(trait) normalisation factors
+        alpha = 1 / gene_total
+        beta = 1 / trait_total
+        # Apply normalisation
+        for n in range (3):
+            probabilities[person]['gene'][n] *= alpha
+        for t in [True, False]:
+            probabilities[person]['trait'][t] *= beta 
+        
 
 if __name__ == "__main__":
     main()
