@@ -141,7 +141,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone not in set` have_trait` does not have the trait.
     """
     # Calculate the matrix of probabilities for gene inheritance
-    gene_matrix = gene_matrix()
+    gene_matrix = create_gene_matrix()
     
     # create list to store all probabilities to be multiplied
     joint_prob = []
@@ -174,29 +174,20 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             trait_prob = PROBS['trait'][ref[person]['genes']][ref[person]['trait']]
             joint_prob.append(gene_prob * trait_prob)
         else:
-            # Calculate prob of getting number of genes from mother and father
-            for parent in ['mother', 'father']:
-                if ref[person[parent]]['genes'] == 2:
-                    gene_prob = 1 - PROBS['mutation']
-                elif ref[person[parent]]['genes'] == 1:
-                    gene_prob = 0.5 - PROBS['mutation']
-                elif ref[person[parent]]['genes'] == 0:
-                    gene_prob = PROBS['mutation']
-                
-                inherited_prob = 
+            # Use matrix to get prob of getting number of genes from mother and father
+            gene_prob = gene_matrix [ref[person]['genes']] [ref[people[person]['father']]['genes']] [ref[people[person]['mother']]['genes']]
+            trait_prob = PROBS['trait'][ref[person]['genes']][ref[person]['trait']]
+            joint_prob.append(gene_prob * trait_prob)
+
+    # Calculate total joint prob
+    final_prob = 1
+    for item in joint_prob:
+        final_prob *= item
+        
+    return final_prob
 
 
-
-            # Calculate prob of getting number of genes from father
-
-
-
-        # Calculate total probability for this person
-        total_prob = gene_prob * trait_prob
-        joint_prob.append(total_prob)
-
-
-def gene_matrix():
+def create_gene_matrix():
     """ 
     Calculate a 3 x 3 x 3 matrix of probabilities for inherting any number of genes from parents with any number of genes.
     x, y = parents
