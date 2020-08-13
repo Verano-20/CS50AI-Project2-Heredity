@@ -142,7 +142,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     """
     # Calculate the matrix of probabilities for gene inheritance
     gene_matrix = create_gene_matrix()
-    
+
     # create list to store all probabilities to be multiplied
     joint_prob = []
 
@@ -164,18 +164,16 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         # Add info to ref
         ref[person] = {'genes': genes, 'trait': trait}
 
-    # Begin looping through people
     for person in people:
-       
         # Check if the person has parents
-        if people[person]['mother'] == None and people[person]['father'] == None:
-            # If no parents, take values straight from dict
-            gene_prob = PROBS['gene'][ref[person]['genes']]    
+        if people[person]['mother'] is None:
+            # If no parents, take values straight from PROBS dict
+            gene_prob = PROBS['gene'][ref[person]['genes']]
             trait_prob = PROBS['trait'][ref[person]['genes']][ref[person]['trait']]
             joint_prob.append(gene_prob * trait_prob)
         else:
             # Use matrix to get prob of getting number of genes from mother and father
-            gene_prob = gene_matrix [ref[person]['genes']] [ref[people[person]['father']]['genes']] [ref[people[person]['mother']]['genes']]
+            gene_prob = gene_matrix[ref[person]['genes']][ref[people[person]['father']]['genes']][ref[people[person]['mother']]['genes']]
             trait_prob = PROBS['trait'][ref[person]['genes']][ref[person]['trait']]
             joint_prob.append(gene_prob * trait_prob)
 
@@ -183,15 +181,16 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     final_prob = 1
     for item in joint_prob:
         final_prob *= item
-        
+
     return final_prob
 
 
 def create_gene_matrix():
-    """ 
-    Calculate a 3 x 3 x 3 matrix of probabilities for inherting any number of genes from parents with any number of genes.
-    x, y = parents
-    z = child
+    """
+    Calculate a 3 x 3 x 3matrix of probabilities for a child inherting
+    any number of genes from parents with any number of genes.
+    y, z = parents
+    x = child
     Values taken from PROBS dict.
     """
     # Get probabilities for mutation and no mutation
@@ -201,35 +200,36 @@ def create_gene_matrix():
     # Create 3 x 3 x 3 numpy array
     gene_matrix = np.zeros((3, 3, 3))
 
+    # gene_matrix[child genes][parent1 genes][parent2 genes]
     gene_matrix[0][0][0] = P_NM**2
-    gene_matrix[0][1][0] = P_NM * 0.5 * P_M + 0.5 * (P_NM**2)
+    gene_matrix[0][1][0] = 0.5 * P_M * P_NM + 0.5 * P_NM**2
     gene_matrix[0][2][0] = P_NM * P_M
-    gene_matrix[0][0][1] = P_NM * 0.5 * P_M + 0.5 * (P_NM**2)
+    gene_matrix[0][0][1] = gene_matrix[0][1][0]
     gene_matrix[0][1][1] = (0.5 * P_M)**2 + 0.5 * P_M * P_NM + (0.5 * P_NM)**2
     gene_matrix[0][2][1] = 0.5 * P_NM * P_M
-    gene_matrix[0][0][2] = P_M * P_NM
-    gene_matrix[0][1][2] = 0.5 * P_M * P_NM
+    gene_matrix[0][0][2] = gene_matrix[0][2][0]
+    gene_matrix[0][1][2] = gene_matrix[0][2][1]
     gene_matrix[0][2][2] = P_M**2
 
     gene_matrix[1][0][0] = 2 * P_M * P_NM
     gene_matrix[1][1][0] = 0.5 * P_NM**2 + P_M * P_NM + 0.5 * P_M**2
     gene_matrix[1][2][0] = P_M**2 + P_NM**2
-    gene_matrix[1][0][1] = 0.5 * P_NM**2 + P_M * P_NM + 0.5 * P_M**2
-    gene_matrix[1][1][1] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
-    gene_matrix[1][2][1] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
-    gene_matrix[1][0][2] = P_NM**2 + P_M**2
-    gene_matrix[1][1][2] = 0.5 * P_M**2 + P_M * P_NM + 0.5 * P_NM**2
-    gene_matrix[1][2][2] = 2 * P_M * P_NM
+    gene_matrix[1][0][1] = gene_matrix[1][1][0]
+    gene_matrix[1][1][1] = gene_matrix[1][1][0]
+    gene_matrix[1][2][1] = gene_matrix[1][1][0]
+    gene_matrix[1][0][2] = gene_matrix[1][2][0]
+    gene_matrix[1][1][2] = gene_matrix[1][2][1]
+    gene_matrix[1][2][2] = gene_matrix[1][0][0]
 
-    gene_matrix[2][0][0] = P_M**2
+    gene_matrix[2][0][0] = gene_matrix[0][2][2]
     gene_matrix[2][1][0] = 0.5 * P_M**2 + 0.5 * P_M * P_NM
-    gene_matrix[2][2][0] = P_M * P_NM
-    gene_matrix[2][0][1] = 0.5 * P_M**2 + 0.5 * P_M * P_NM
+    gene_matrix[2][2][0] = gene_matrix[0][2][0]
+    gene_matrix[2][0][1] = gene_matrix[2][1][0]
     gene_matrix[2][1][1] = 0.25 * P_M**2 + 0.5 * P_M * P_NM + 0.25 * P_NM**2
-    gene_matrix[2][2][1] = 0.5 * P_M * P_NM + 0.5 * P_NM**2
-    gene_matrix[2][0][2] = P_M * P_NM
-    gene_matrix[2][1][2] = 0.5 * P_M * P_NM + 0.5 * P_NM**2
-    gene_matrix[2][2][2] = P_NM**2
+    gene_matrix[2][2][1] = gene_matrix[0][1][0]
+    gene_matrix[2][0][2] = gene_matrix[2][2][0]
+    gene_matrix[2][1][2] = gene_matrix[2][2][1]
+    gene_matrix[2][2][2] = gene_matrix[0][0][0]
 
     return gene_matrix
 
@@ -244,10 +244,15 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     for person in probabilities:
         if person in one_gene:
             probabilities[person]['gene'][1] += p
-        if person in two_genes:
+        elif person in two_genes:
             probabilities[person]['gene'][2] += p
+        else:
+            probabilities[person]['gene'][0] += p
+
         if person in have_trait:
             probabilities[person]['trait'][True] += p
+        else:
+            probabilities[person]['trait'][False] += p
 
 
 def normalize(probabilities):
@@ -263,11 +268,11 @@ def normalize(probabilities):
         alpha = 1 / gene_total
         beta = 1 / trait_total
         # Apply normalisation
-        for n in range (3):
+        for n in range(3):
             probabilities[person]['gene'][n] *= alpha
         for t in [True, False]:
-            probabilities[person]['trait'][t] *= beta 
-        
+            probabilities[person]['trait'][t] *= beta
+
 
 if __name__ == "__main__":
     main()
